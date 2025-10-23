@@ -23,7 +23,7 @@ public class Review {
 
     private String comment;
 
-    private float rating; // e.g., 4.5
+    private Float rating; // e.g., 4.5
 
     @DBRef
     private Patient patient; // who wrote the review

@@ -14,6 +14,7 @@ import com.example.vladyslav.repository.UserRepository;
 import com.example.vladyslav.requests.DoctorRegisterRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -125,14 +126,6 @@ public class DoctorService {
         return doctorRepository.save(doctor);
     }
 
-    public List<DoctorDTO> getAllDoctors(){
-        List<Doctor> doctors = doctorRepository.findAll();
-
-        return doctors.stream()
-                .map(this::toDTO)
-                .toList();
-    }
-
     public DoctorDTO getDoctorById(String doctorId){
         Doctor doctor = doctorRepository.findById(doctorId).orElseThrow(()-> new NotFoundException("Doctor not found for doctorId " + doctorId));
         return toDTO(doctor);
@@ -157,6 +150,18 @@ public class DoctorService {
     public Page<DoctorDTO> findDoctorsBySpecialityId(String id, Pageable p){
         return doctorRepository.findDoctorsBySpecialityId(id, p)
                 .map(this::toDTO);
+    }
+
+    public Page<DoctorDTO> getAllDoctors(int page, int size){
+
+        Pageable pageable = PageRequest.of(page,size);
+        return doctorRepository.findAll(pageable).map(this::toDTO);
+    }
+
+    public Page<DoctorDTO> getDoctorByLastName(String lastName, int page, int size){
+
+        Pageable pageable = PageRequest.of(page,size);
+        return doctorRepository.findByLastNameContainingIgnoreCase(lastName, pageable).map(this::toDTO);
     }
 
     private DoctorDTO toDTO(Doctor doctor){

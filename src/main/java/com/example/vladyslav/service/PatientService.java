@@ -5,9 +5,11 @@ import com.example.vladyslav.exception.NotFoundException;
 import com.example.vladyslav.model.Patient;
 import com.example.vladyslav.repository.PatientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 
 @Service
 public class PatientService {
@@ -36,16 +38,19 @@ public class PatientService {
 
 
 
-    public List<PatientDTO> getAllPatients(){
+    public Page<PatientDTO> getAllPatients(int page, int size){
 
-        List<Patient> patients = patientRepository.findAll();
-
-        return patients.stream()
-                .map(this::toDto)
-                .toList();
+        Pageable pageable = PageRequest.of(page,size);
+        return patientRepository.findAll(pageable).map(this::toDto);
     }
 
-    
+    public Page<PatientDTO> getPatientByLastName(String lastName, int page, int size){
+
+        Pageable pageable = PageRequest.of(page,size);
+        return patientRepository.findByLastNameContainingIgnoreCase(lastName, pageable).map(this::toDto);
+    }
+
+
     private PatientDTO toDto(Patient patient){
         return PatientDTO.builder()
                 .id(patient.getId())

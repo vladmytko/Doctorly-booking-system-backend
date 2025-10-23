@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -34,6 +33,8 @@ public class DoctorDTO {
     private Instant createdAt;
     private Instant updatedAt;
     private String imageUrl;
+
+    @Builder.Default
     private int consultationFee = 0;
 
 }

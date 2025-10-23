@@ -10,5 +10,5 @@ public interface AvailabilityRuleRepository extends MongoRepository<Availability
 
     List<AvailabilityRule> findByDoctorId(String doctorId);
 
-    Optional<AvailabilityRule>  findByDoctorIDAndDayOfWeek(String doctorId, int dayOfWeek);
+    Optional<AvailabilityRule> findByDoctorIdAndDayOfWeek(String doctorId, int dayOfWeek);
 }

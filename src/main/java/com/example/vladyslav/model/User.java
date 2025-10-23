@@ -22,7 +22,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(of = "id")      // generate equals() and hashCode() methods based on the id field
-@ToString(exclude = "password")
+@ToString
 @Document(collection = "users")
 public class User implements UserDetails{
 

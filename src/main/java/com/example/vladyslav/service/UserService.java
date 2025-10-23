@@ -5,6 +5,9 @@ import com.example.vladyslav.exception.NotFoundException;
 import com.example.vladyslav.model.User;
 import com.example.vladyslav.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +28,12 @@ public class UserService {
         return userRepository.findById(userId)
                 .map(this::toDto)
                 .orElseThrow(() -> new NotFoundException("User not found by ID: " + userId));
+    }
+
+    public Page<UserDTO> getAllUsers(int page, int size){
+        Pageable pageable = PageRequest.of(page,size);
+
+        return userRepository.findAll(pageable).map(this::toDto);
     }
 
     private UserDTO toDto(User user){

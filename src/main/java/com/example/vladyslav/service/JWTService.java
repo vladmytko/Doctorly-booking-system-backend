@@ -39,7 +39,7 @@ public class JWTService {
 
         // Put a single role into JWT (enum -> String)
         var roles = user.getRole() == null ? java.util.List.<String>of()
-                : java.util.List.of(user.getRole().getRoleName());
+                : java.util.List.of(user.getRole());
 
         return Jwts.builder()
                 .setIssuer(issuer)

@@ -4,38 +4,59 @@ import com.example.vladyslav.dto.DoctorDTO;
 import com.example.vladyslav.model.Doctor;
 import com.example.vladyslav.requests.DoctorRegisterRequest;
 import com.example.vladyslav.service.DoctorService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/doctors")
+@RequiredArgsConstructor
+@Validated
 public class DoctorController {
 
-    @Autowired
-    private DoctorService doctorService;
 
-    @GetMapping
-    public List<DoctorDTO> getAllDoctors(){
-        return doctorService.getAllDoctors();
+    private final DoctorService doctorService;
+
+    @GetMapping("/all")
+    public ResponseEntity<Page<DoctorDTO>> getAllDoctors(@RequestParam(defaultValue = "0") int page,
+                                                         @RequestParam(defaultValue = "20") int size){
+        Page<DoctorDTO> dto = doctorService.getAllDoctors(page, size);
+        return ResponseEntity.ok(dto);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<Doctor> createDoctor(@RequestBody DoctorRegisterRequest request){
+    public ResponseEntity<Doctor> createDoctor(@Valid @RequestBody DoctorRegisterRequest request){
         return new ResponseEntity<>(doctorService.createDoctor(request), HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<DoctorDTO> getDoctorById(@PathVariable String id){
-        DoctorDTO doctor = doctorService.getDoctorById(id);
-        return doctor != null ? ResponseEntity.ok(doctor) : ResponseEntity.notFound().build();
+        return ResponseEntity.ok(doctorService.getDoctorById(id));
+    }
+
+//    @GetMapping
+//    public ResponseEntity<Page<DoctorDTO>> getDoctorsByClinicAndRating(@RequestParam(required = false) String clinicId,
+//                                                                       @RequestParam(required = false) @Min(0) Integer minRating,
+//                                                                       @PageableDefault(size = 20, sort = "lastName") Pageable pageable){
+//        return ResponseEntity.ok(doctorService.search(clinicId, minRating, pageable));
+//    }
+
+    @GetMapping("/{lastName}")
+    public ResponseEntity<Page<DoctorDTO>> getDoctorByLastName(@PathVariable String lastName,
+                                                               @RequestParam(defaultValue = "0") int page,
+                                                               @RequestParam(defaultValue = "20") int size){
+        Page<DoctorDTO> dto = doctorService.getDoctorByLastName(lastName, page, size);
+        return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/speciality")

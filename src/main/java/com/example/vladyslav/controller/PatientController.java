@@ -3,13 +3,9 @@ package com.example.vladyslav.controller;
 import com.example.vladyslav.dto.PatientDTO;
 import com.example.vladyslav.service.PatientService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/patients")
@@ -32,8 +28,17 @@ public class PatientController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<PatientDTO>> getAllPatients(){
-        List<PatientDTO> dto = patientService.getAllPatients();
+    public ResponseEntity<Page<PatientDTO>> getAllPatients(@RequestParam(defaultValue = "0") int page,
+                                                           @RequestParam(defaultValue = "20") int size){
+        Page<PatientDTO> dto = patientService.getAllPatients(page, size);
+        return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/name/{lastName}")
+    public ResponseEntity<Page<PatientDTO>> getAllPatients(@PathVariable String lastName,
+                                                           @RequestParam(defaultValue = "0") int page,
+                                                           @RequestParam(defaultValue = "20") int size){
+        Page<PatientDTO> dto = patientService.getPatientByLastName(lastName, page, size);
         return ResponseEntity.ok(dto);
     }
 }

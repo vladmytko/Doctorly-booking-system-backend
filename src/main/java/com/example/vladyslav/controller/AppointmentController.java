@@ -1,29 +1,33 @@
 package com.example.vladyslav.controller;
 
 import com.example.vladyslav.dto.AppointmentDTO;
-import com.example.vladyslav.dto.AppointmentRequestDTO;
 import com.example.vladyslav.model.Appointment;
-import com.example.vladyslav.requests.BookAppointmentRequest;
-import com.example.vladyslav.requests.ConfirmAppointmentRequest;
+import com.example.vladyslav.model.enums.AppointmentStatus;
+import com.example.vladyslav.requests.RescheduleRequest;
 import com.example.vladyslav.service.AppointmentService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.time.Instant;
+import java.util.Optional;
+
 
 @RestController
 @RequestMapping("/api/appointments")
+@RequiredArgsConstructor
 public class AppointmentController {
 
-    @Autowired
-    private AppointmentService appointmentService;
+    private final AppointmentService appointmentService;
 
-    @GetMapping
-    public ResponseEntity<List<Appointment>> getAppointments(){
-        return ResponseEntity.ok(appointmentService.getAllAppointments());
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/all")
+    public ResponseEntity<Page<AppointmentDTO>> getAppointments( @RequestParam(defaultValue = "0") int page,
+                                                                 @RequestParam(defaultValue = "20") int size){
+        return ResponseEntity.ok(appointmentService.getAllAppointments(page, size));
     }
 
     @GetMapping("/id/{appointmentId}")
@@ -31,41 +35,76 @@ public class AppointmentController {
         return ResponseEntity.ok(appointmentService.getAppointmentById(appointmentId));
     }
 
-    @GetMapping("/patient/{patientId}")
-    public ResponseEntity<List<AppointmentDTO>> getAppointmentsByPatientId(@PathVariable String patientId){
-        return ResponseEntity.ok(appointmentService.getAppointmentsByPatientId(patientId));
+
+    @GetMapping("/patient-id/{patientId}")
+    public ResponseEntity<Page<AppointmentDTO>> getAppointmentsByPatientId(@PathVariable String patientId,
+                                                                           @RequestParam(defaultValue = "0") int page,
+                                                                           @RequestParam(defaultValue = "20") int size){
+        return ResponseEntity.ok(appointmentService.getAppointmentsByPatientId(patientId, page, size));
     }
 
-    @PreAuthorize("hasRole('DOCTOR')")
+    @PreAuthorize("hasAnyRole('DOCTOR','ADMIN')")
     @GetMapping("/doctor/{doctorId}")
-    public ResponseEntity<List<AppointmentDTO>> getAppointmentsByDoctorId(@PathVariable String doctorId){
-        return ResponseEntity.ok(appointmentService.getAppointmentsByDoctorId(doctorId));
+    public ResponseEntity<Page<AppointmentDTO>> getAppointmentsByDoctorId(@PathVariable String doctorId,
+                                                                          @RequestParam(defaultValue = "0") int page,
+                                                                          @RequestParam(defaultValue = "20") int size){
+        return ResponseEntity.ok(appointmentService.getAppointmentsByDoctorId(doctorId, page, size));
     }
 
     @PostMapping
-    public ResponseEntity<AppointmentRequestDTO> bookAppointment(@RequestBody BookAppointmentRequest request) {
-            return new ResponseEntity<>(appointmentService.bookAppointment(request), HttpStatus.CREATED);
+    public ResponseEntity<AppointmentDTO> createAppointment(@RequestBody Appointment appointment) {
+            return new ResponseEntity<>(appointmentService.createAppointment(appointment), HttpStatus.CREATED);
     }
 
     @PostMapping("/cancel/{appointmentId}")
-    public ResponseEntity<AppointmentDTO> cancelAppointment(@PathVariable String appointmentId){
-        return new ResponseEntity<>(appointmentService.cancelAppointment(appointmentId), HttpStatus.OK);
+    public ResponseEntity<Void> cancel(@PathVariable String appointmentId){
+        appointmentService.cancel(appointmentId);
+        return ResponseEntity.ok().build();
     }
 
-    @PreAuthorize("hasRole('DOCTOR')")
-    @PostMapping("/confirm")
-    public ResponseEntity<AppointmentDTO> confirmAppointment(@RequestBody ConfirmAppointmentRequest request){
-        return new ResponseEntity<>(appointmentService.confirmAppointment(request), HttpStatus.OK);
-    }
-
-    @PreAuthorize("hasRole('DOCTOR')")
-    @PostMapping("/completed/{appointmentId}")
-    public ResponseEntity<AppointmentDTO> completedAppointment(@PathVariable String appointmentId){
-        return new ResponseEntity<>(appointmentService.completedAppointment(appointmentId), HttpStatus.OK);
+    @PostMapping("/reschedule/{appointmentId}")
+    public ResponseEntity<AppointmentDTO> reschedule(@PathVariable String appointmentId, @RequestBody RescheduleRequest request){
+        return ResponseEntity.ok(appointmentService.reschedule(appointmentId, request));
     }
 
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<AppointmentDTO>> getAppointmentsByStatus(@PathVariable Appointment.AppointmentStatus status){
-        return new ResponseEntity<>(appointmentService.getAppointmentsByStatus(status), HttpStatus.OK);
+    public ResponseEntity<Page<AppointmentDTO>> getAppointmentByStatus(@PathVariable AppointmentStatus status,
+                                                                       @RequestParam(defaultValue = "0") int page,
+                                                                       @RequestParam(defaultValue = "20") int size){
+        return ResponseEntity.ok(appointmentService.getAppointmentsByStatus(status, page, size));
     }
+
+    @GetMapping("/doctor-id/{doctorId}/by-start")
+    public ResponseEntity<Optional<AppointmentDTO>> getAppointmentByDoctorIdAndStartDate(@PathVariable String doctorId, @RequestParam Instant startDate){
+        return ResponseEntity.ok(appointmentService.getAppointmentByDoctorIdAndStartDate(doctorId, startDate));
+    }
+
+    @GetMapping("/clinic-id/{clinicId}/by-start-end")
+    public ResponseEntity<Page<AppointmentDTO>> getAppointmentByClinicIdFromStartToEndDates(@PathVariable String clinicId,
+                                                                                            @RequestParam Instant start,
+                                                                                            @RequestParam Instant end,
+                                                                                            @RequestParam(defaultValue = "0") int page,
+                                                                                            @RequestParam(defaultValue = "20") int size){
+        return ResponseEntity.ok(appointmentService.getAppointmentByClinicIdFromStartToEndDates(clinicId, start, end, page, size));
+    }
+
+    @GetMapping("/by-clinic/{clinicId}")
+    public ResponseEntity<Page<AppointmentDTO>> getAppointmentsByClinicId(@PathVariable String clinicId,
+                                                                          @RequestParam(defaultValue = "0") int page,
+                                                                          @RequestParam(defaultValue = "20") int size){
+        return ResponseEntity.ok(appointmentService.getAppointmentsByClinicId(clinicId, page, size));
+    }
+
+    @GetMapping("/doctor-id/{doctorId}/by-status")
+    public ResponseEntity<Page<AppointmentDTO>> findByDoctorIdAndStatusBetween(@PathVariable String doctorId,
+                                                                               @RequestParam AppointmentStatus appointmentStatus,
+                                                                               @RequestParam Instant from,
+                                                                               @RequestParam Instant to,
+                                                                               @RequestParam(defaultValue = "0") int page,
+                                                                               @RequestParam(defaultValue = "20") int size){
+        return ResponseEntity.ok(appointmentService.findByDoctorIdAndStatusBetween(doctorId, appointmentStatus, from, to, page, size));
+    }
+
+
+
 }
