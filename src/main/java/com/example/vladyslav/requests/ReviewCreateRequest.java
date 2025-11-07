@@ -23,8 +23,4 @@ public class ReviewCreateRequest {
     @NotBlank(message = "Doctor ID is required")
     private String doctorId;
 
-    @NotBlank(message = "Clinic ID is required")
-    private String clinicId;
-
-
 }

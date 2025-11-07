@@ -5,9 +5,13 @@ import com.example.vladyslav.exception.OurException;
 import com.example.vladyslav.model.TimeOff;
 import com.example.vladyslav.repository.TimeOffRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -19,6 +23,13 @@ public class TimeOffService {
     public TimeOff get(String id){
         return timeOffRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("TimeOff not found: " + id));
+    }
+
+    public Page<TimeOff> getTimeOffByDoctorId(String doctorId, LocalDate start, Integer page, Integer size){
+        Pageable pageable = PageRequest.of(page,size);
+
+        return timeOffRepository.findByDoctorIdAndStartAfter(doctorId,start,pageable);
+
     }
 
     public TimeOff create(TimeOff timeOff) {

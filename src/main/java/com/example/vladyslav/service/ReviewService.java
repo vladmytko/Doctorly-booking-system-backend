@@ -31,23 +31,23 @@ public class ReviewService {
     private final PatientRepository patientRepository;
     private final AppointmentRepository appointmentRepository;
 
-    public ReviewDTO createReviewForDoctor(String doctorId, ReviewCreateRequest request, String patientId){
+    public ReviewDTO createReviewForDoctor( ReviewCreateRequest request){
         // 1) Basic validation
         if(request.getRating() < 1 || request.getRating() > 5) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "rating must be 1..5");
         }
 
         // 2) Ensure doctor exist
-        Doctor doctor = doctorRepository.findById(doctorId)
-                .orElseThrow(()-> new NotFoundException("Doctor not found: " + doctorId));
+        Doctor doctor = doctorRepository.findById(request.getDoctorId())
+                .orElseThrow(()-> new NotFoundException("Doctor not found: " + request.getDoctorId()));
 
         // 3) Ensure patient exist
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(()-> new NotFoundException("Patient not found: " + patientId));
+        Patient patient = patientRepository.findById(request.getPatientId())
+                .orElseThrow(()-> new NotFoundException("Patient not found: " + request.getPatientId()));
 
         // 4) Ensure the patient has at least one COMPLETED appointment with doctor (in the past)
         boolean hadCompletedAppointment = appointmentRepository
-                .existsByDoctorIdAndPatientIdAndStatusAndEndBefore(doctorId, patientId, AppointmentStatus.ATTENDED, Instant.now());
+                .existsByDoctorIdAndPatientIdAndStatusAndEndBefore(request.getDoctorId(), request.getPatientId(), AppointmentStatus.ATTENDED, Instant.now());
 
         if(!hadCompletedAppointment) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
@@ -55,7 +55,7 @@ public class ReviewService {
         }
 
         // 5) Optional: prevent duplicate review per doctor-patient (allow update instead)
-        reviewRepository.findByDoctorIdAndPatientId(doctorId, patientId)
+        reviewRepository.findByDoctorIdAndPatientId(request.getDoctorId(), request.getPatientId())
                 .ifPresent(review -> {
                     throw new ResponseStatusException(HttpStatus.CONFLICT,
                             "You have already reviewed this doctor.");
@@ -74,19 +74,19 @@ public class ReviewService {
         // 7) Recalculate doctor's average rating
         recalculateDoctorAverage(doctor);
 
-        return toDTO(saved);
+        return toReviewDTO(saved);
     }
 
     public Page<ReviewDTO> listForDoctor(String doctorId, int page, int size){
         Pageable pageable = PageRequest.of(page,size);
         return reviewRepository.findByDoctorIdOrderByCreatedAtDesc(doctorId, pageable)
-                .map(this::toDTO);
+                .map(this::toReviewDTO);
     }
 
     public ReviewDTO getReviewById(String reviewId){
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(()-> new NotFoundException("Review not found: " + reviewId));
-        return toDTO(review);
+        return toReviewDTO(review);
     }
 
     public void deleteReview(String reviewId){
@@ -111,7 +111,7 @@ public class ReviewService {
 
 
 
-    public ReviewDTO toDTO(Review review){
+    public ReviewDTO toReviewDTO(Review review){
         return ReviewDTO.builder()
                 .id(review.getId())
                 .comment(review.getComment())

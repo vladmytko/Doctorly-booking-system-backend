@@ -26,12 +26,12 @@ public class AppointmentService {
 
     private static final ZoneId UK_TZ = ZoneId.of("Europe/London");
 
-    private AppointmentRepository appointmentRepository;
-    private AvailabilityRuleRepository availabilityRuleRepository;
-    private TimeOffRepository timeOffRepository;
-    private UserRepository userRepository;
-    private DoctorRepository doctorRepository;
-    private PatientRepository patientRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final AvailabilityRuleRepository availabilityRuleRepository;
+    private final TimeOffRepository timeOffRepository;
+    private final UserRepository userRepository;
+    private final DoctorRepository doctorRepository;
+    private final PatientRepository patientRepository;
 
     public AppointmentDTO toDto(Appointment a){
         return AppointmentDTO.builder()

@@ -7,11 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/doctors/{doctorId}/reviews")
+@RequestMapping("/api/reviews")
 @RequiredArgsConstructor
 public class ReviewController {
 
@@ -24,11 +23,9 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.listForDoctor(doctorId, page, size));
     }
 
-    @PostMapping
-    public ResponseEntity<ReviewDTO> createReview(@PathVariable String doctorId,
-                                                  @RequestBody ReviewCreateRequest request,
-                                                  @AuthenticationPrincipal(expression = "id") String patientId){
-        return new ResponseEntity<>(reviewService.createReviewForDoctor(doctorId, request, patientId), HttpStatus.CREATED);
+    @PostMapping()
+    public ResponseEntity<ReviewDTO> createReview(@RequestBody ReviewCreateRequest request){
+        return new ResponseEntity<>(reviewService.createReviewForDoctor(request), HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{reviewId}")

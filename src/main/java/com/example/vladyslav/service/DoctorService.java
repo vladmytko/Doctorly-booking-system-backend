@@ -76,7 +76,7 @@ public class DoctorService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
 
         User user = User.builder()
-                .email(request.getEmail())
+                .email(normalizedEmail)
                 .role(Role.DOCTOR)
                 .password(passwordEncoder.encode(request.getPassword()))
                 .isActive(true)
@@ -116,6 +116,11 @@ public class DoctorService {
         return toDTO(doctor);
     }
 
+    public DoctorDTO findByEmail(String email){
+        Doctor doctor = doctorRepository.findByEmail(email).orElseThrow(()-> new NotFoundException("Doctor not found with email: " + email));
+        return toDTO(doctor);
+    }
+
     public Page<DoctorDTO> findBySpecialityTitle(String title, Pageable p){
         if (title == null || title.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "specialityTitle is required");
@@ -147,6 +152,18 @@ public class DoctorService {
 
         Pageable pageable = PageRequest.of(page,size);
         return doctorRepository.findByLastNameContainingIgnoreCase(lastName, pageable).map(this::toDTO);
+    }
+
+    public List<DoctorDTO> searchByNameOrEmail(String query) {
+        String keyword = query.trim().toLowerCase();
+
+        List<Doctor> doctors = doctorRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                keyword, keyword, keyword
+        );
+
+        return doctors.stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
     private DoctorDTO toDTO(Doctor doctor){

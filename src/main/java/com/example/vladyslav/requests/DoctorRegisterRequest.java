@@ -1,7 +1,7 @@
 package com.example.vladyslav.requests;
 
 
-import com.example.vladyslav.model.Speciality;
+
 import com.example.vladyslav.model.enums.LanguageCode;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;

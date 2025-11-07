@@ -20,7 +20,7 @@ public class AvailabilityRuleServiceController {
     // List all rules for doctor
     @PreAuthorize("hasAnyAuthority('ADMIN','DOCTOR')")
     @GetMapping("/list/{doctorId}")
-    public ResponseEntity<List<AvailabilityRule>> list (@RequestParam String doctorId){
+    public ResponseEntity<List<AvailabilityRule>> list (@PathVariable String doctorId){
         return ResponseEntity.ok(service.list(doctorId));
     }
 

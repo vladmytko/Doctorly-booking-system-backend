@@ -1,5 +1,6 @@
 package com.example.vladyslav.model;
 
+import com.example.vladyslav.model.enums.AppointmentType;
 import com.example.vladyslav.model.enums.LanguageCode;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
@@ -7,6 +8,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import jakarta.validation.constraints.*;
@@ -27,9 +29,11 @@ public class Doctor {
     @Id
     private String id;
 
+    @TextIndexed(weight = 2f)
     @NotBlank
     private String firstName;
 
+    @TextIndexed(weight = 2f)
     @NotBlank
     private String lastName;
 
@@ -48,6 +52,7 @@ public class Doctor {
     @NotNull(message = "Date of birth is required")
     private LocalDate dateOfBirth;
 
+    @TextIndexed
     private String bio;
 
     @NotBlank(message = "Photo url is required")
@@ -66,6 +71,10 @@ public class Doctor {
     @Min(0)
     @Builder.Default
     private int consultationFee = 0;
+
+    @Indexed
+    @Builder.Default
+    private List<AppointmentType> appointmentTypes = new ArrayList<>();
 
     @DBRef
     private User user;

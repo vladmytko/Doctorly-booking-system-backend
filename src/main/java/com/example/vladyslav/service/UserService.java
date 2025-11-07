@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,17 @@ public class UserService {
         Pageable pageable = PageRequest.of(page,size);
 
         return userRepository.findAll(pageable).map(this::toDto);
+    }
+
+    public User getCurrentUser(Authentication authentication){
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User is not authenticated");
+        }
+
+        String email = authentication.getName();
+
+        return userRepository.findByEmail(email)
+                .orElseThrow(()-> new RuntimeException("User not found with email: " + email));
     }
 
     private UserDTO toDto(User user){
