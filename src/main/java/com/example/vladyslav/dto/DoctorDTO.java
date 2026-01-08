@@ -1,6 +1,5 @@
 package com.example.vladyslav.dto;
 
-import com.example.vladyslav.model.Review;
 import com.example.vladyslav.model.enums.LanguageCode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

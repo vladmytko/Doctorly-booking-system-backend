@@ -188,6 +188,8 @@ public class AppointmentService {
         return toDto(appointment);
     }
 
+
+
     /* --------------------------------------- Validators --------------------------------------------------------------- */
 
     public void validateDraft(Appointment appointment) {

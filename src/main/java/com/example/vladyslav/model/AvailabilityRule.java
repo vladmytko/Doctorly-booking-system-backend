@@ -44,14 +44,6 @@ public class AvailabilityRule {
     private int bufferBeforeMinutes;    // optional
     private int bufferAfterMinutes;     // optional
 
-   private List<Window> breaks;
-}
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-class Window {
-    private LocalTime startBreak;
-    private LocalTime endBreak;
+   private List<Break> breaks;
 }
 

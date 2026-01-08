@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,10 +34,5 @@ public interface AppointmentRepository extends MongoRepository<Appointment, Stri
     Page<Appointment> findByDoctorIdAndStatusBetween(String doctorId, AppointmentStatus status, Instant from, Instant to, Pageable pageable);
 
     boolean existsByDoctorIdAndPatientIdAndStatusAndEndBefore(String doctorId, String patientId, AppointmentStatus status, Instant end);
-
-
-
-
-
 
 }
