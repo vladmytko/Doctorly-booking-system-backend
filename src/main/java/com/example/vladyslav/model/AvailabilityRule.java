@@ -41,8 +41,6 @@ public class AvailabilityRule {
      * Appointment slot configuration
      */
     private int slotMinutes;            // e.g 30
-    private int bufferBeforeMinutes;    // optional
-    private int bufferAfterMinutes;     // optional
 
    private List<Break> breaks;
 }

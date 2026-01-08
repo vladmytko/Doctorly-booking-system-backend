@@ -36,8 +36,6 @@ public class AvailabilityRuleService {
                     existing.setStart(rule.getStart());
                     existing.setEnd(rule.getEnd());
                     existing.setSlotMinutes(rule.getSlotMinutes());
-                    existing.setBufferBeforeMinutes(rule.getBufferBeforeMinutes());
-                    existing.setBufferAfterMinutes(rule.getBufferAfterMinutes());
                     return repository.save(existing);
                 })
                 .orElseGet(()-> repository.save(rule));
@@ -117,8 +115,8 @@ public class AvailabilityRuleService {
                                        List<TimeInterval> booked) {
 
         int slotMin = rule.getSlotMinutes(); // 30 min
-        int bufBefore = Math.max(0, rule.getBufferBeforeMinutes()); // 5 min
-        int bufAfter = Math.max(0, rule.getBufferAfterMinutes()); // 5 min
+//        int bufBefore = Math.max(0, rule.getBufferBeforeMinutes()); // 5 min
+//        int bufAfter = Math.max(0, rule.getBufferAfterMinutes()); // 5 min
 
         LocalTime workStart = rule.getStart(); // 10:00
         LocalTime workEnd = rule.getEnd();     // 17:00
@@ -126,26 +124,28 @@ public class AvailabilityRuleService {
         List<String> out = new ArrayList<>();
 
         for (LocalTime t = workStart; !t.plusMinutes(slotMin).isAfter(workEnd); t = t.plusMinutes(slotMin)) {
-            // Generates slots, starts from date start e.g. 10:00 and adds slotMin e.g. 30 min. Generate 10:00, 10:30, 11:00, 11:00 until time is after workEnd e.g. 17:00
+            // Generate candidate bookable slots: 09:00, 09:30, 10:00, ...
+            // IMPORTANT: Buffers are NOT applied here, otherwise one booking may hide neighboring slots.
+            // Buffers should be enforced at booking/validation time (e.g. in AppointmentService.ensureNoOverlap).
 
-            LocalTime appontmentStartTime = t; // e.g. 10:00
-            LocalTime appointmentEndTime = t.plusMinutes(slotMin); // e.g 10:30
+            LocalTime slotStart = t; // e.g. 10:00
+            LocalTime slotEnd = t.plusMinutes(slotMin); // e.g 10:30
 
             // blocked interval includes buffers
             // Meaning: if someone books 10:00-10:30, doctor if busy from 09:55 to 10:35, depends on buffer times.
-            LocalTime blockedStart = appontmentStartTime.minusMinutes(bufBefore);
-            LocalTime blockedEnd = appointmentEndTime.plusMinutes(bufAfter);
+//            LocalTime blockedStart = appontmentStartTime.minusMinutes(bufBefore);
+//            LocalTime blockedEnd = appointmentEndTime.plusMinutes(bufAfter);
 
             // If blocked interval touches break, skip that slot
-            boolean overlapsBreak = breaks.stream().anyMatch(b -> overlaps(blockedStart, blockedEnd, b.start(), b.end()));
+            boolean overlapsBreak = breaks.stream().anyMatch(b -> overlaps(slotStart, slotEnd, b.start(), b.end()));
             if (overlapsBreak) continue;
 
             // If blocked interval touches booked appointment, skip that slot
-            boolean overlapsBooked = booked.stream().anyMatch(b -> overlaps(blockedStart, blockedEnd, b.start(), b.end()));
+            boolean overlapsBooked = booked.stream().anyMatch(b -> overlaps(slotStart, slotEnd, b.start(), b.end()));
             if (overlapsBooked) continue;
 
             // Add slots to list as ["09:00", "09:30", "10:00"]
-            out.add(appontmentStartTime.toString().substring(0,5)); // "HH:mm"
+            out.add(slotStart.toString().substring(0,5)); // "HH:mm"
         }
 
         return out;
