@@ -7,6 +7,7 @@ import com.example.vladyslav.model.*;
 import com.example.vladyslav.model.enums.AppointmentStatus;
 import com.example.vladyslav.model.enums.Role;
 import com.example.vladyslav.repository.*;
+import com.example.vladyslav.requests.BookAppointmentRequest;
 import com.example.vladyslav.requests.RescheduleRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 
 import java.time.*;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -64,17 +66,7 @@ public class AppointmentService {
                 pageable);
     }
 
-    public AppointmentDTO createAppointment(Appointment draft) {
-        validateDraft(draft);
-        ensureWithinAvailability(draft);
-        ensureNotDuringTimeOff(draft);
-        ensureNoOverlap(draft);
-        draft.setStatus(draft.getStatus() == null ? AppointmentStatus.SCHEDULED : draft.getStatus());
 
-        appointmentRepository.save(draft);
-
-        return toDto(draft);
-    }
 
     public AppointmentDTO reschedule(String id, RescheduleRequest request) {
         Appointment appointment = appointmentRepository.findById(id).orElseThrow(()-> new NotFoundException("Appointment not found with Appointment ID " + id));
@@ -190,7 +182,70 @@ public class AppointmentService {
 
 
 
-    /* --------------------------------------- Validators --------------------------------------------------------------- */
+    /* --------------------------------------- Book Appointment & Validators --------------------------------------------------------------- */
+
+    public AppointmentDTO createAppointment(BookAppointmentRequest request) {
+
+        final LocalDate date;
+        final LocalTime time;
+        try {
+            date = LocalDate.parse(request.getDate()); // yyyy-MM-dd
+            time = LocalTime.parse(request.getTime()); // HH:mm
+        } catch (DateTimeException e) {
+            throw new OurException("Invalid date/time. Expected date yyyy-MM-dd and time HH:mm");
+        }
+
+        LocalDate todayUK= LocalDate.now(UK_TZ);
+        if(date.isBefore(todayUK)){
+            throw new OurException("Cannot book an appointment in the past");
+        }
+
+        int isoDow = date.getDayOfWeek().getValue();
+
+        AvailabilityRule rule = availabilityRuleRepository
+                .findByDoctorIdAndDayOfWeek(request.getDoctorId(), isoDow)
+                .orElseThrow(()-> new OurException("No availability for this day (doctorId=" + request.getDoctorId() +
+                        ", day=" + isoDow + ")."));
+
+
+        // You can only book exactly on the slot grid (e.g., 09:00, 09:30, 10:00 - not 09:07)
+        // Ensure the chosen time is not before the doctor start working
+        // Time falls exactly on a slot boundary (based on slot minutes)
+
+        // Convent chosen time to minutes since midnight
+
+        int minutesFromMidnight = time.getHour() * 60 + time.getMinute();  // If patient chose 10:30, then 10 * 60 + 30 = 630 minutes
+        int workStartMinutes = rule.getStart().getHour() * 60 + rule.getStart().getMinute(); // if doctor start work at 09:30, then 9 * 60 + 0 = 540 minutes
+        int delta = minutesFromMidnight - workStartMinutes; // Calculate how far the chosen time is from work start. Is this example 90 minutes
+
+        // Validate slots,
+        // Case A: if delta < 0, booking is rejected because chosen time if before doctor start time
+        // Case B: if delta % rule.getSlotMinutes() != 0, not on a slot boundary, if slot = 30, 90 % 30 = 0. 10:30 -> ok, 10:47 -> rejected
+        if(delta < 0 || delta % rule.getSlotMinutes() != 0) {
+            throw new OurException("Selected time must align with slot intervals of " + rule.getSlotMinutes() + " minutes.");
+        }
+
+        ZonedDateTime startUK = ZonedDateTime.of(date, time, UK_TZ);
+        Instant start = startUK.toInstant();
+        Instant end = start.plus(Duration.ofMinutes(rule.getSlotMinutes()));
+
+        Appointment draft = Appointment.builder()
+                        .doctorId(request.getDoctorId())
+                        .patientId(request.getPatientId())
+                        .start(start)
+                        .end(end)
+                        .status(AppointmentStatus.SCHEDULED)
+                        .build();
+
+        validateDraft(draft);
+        ensureWithinAvailability(draft);
+        ensureNotDuringTimeOff(draft);
+        ensureNoOverlap(draft);
+
+        appointmentRepository.save(draft);
+
+        return toDto(draft);
+    }
 
     public void validateDraft(Appointment appointment) {
         if(appointment.getDoctorId() == null || appointment.getPatientId() == null) {
@@ -214,7 +269,7 @@ public class AppointmentService {
         LocalTime startLocal = startUK.toLocalTime();
         LocalTime endLocal = appointment.getEnd().atZone(UK_TZ).toLocalTime();
 
-        // Slot-size enforcement (optional, only if set)
+        // Slot-size enforcement
         if (rule.getSlotMinutes() > 0) {
             long minutes = Duration.between(appointment.getStart(), appointment.getEnd()).toMinutes();
             if(minutes % rule.getSlotMinutes() != 0) {

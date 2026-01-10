@@ -5,6 +5,7 @@ import com.example.vladyslav.model.Appointment;
 import com.example.vladyslav.model.User;
 import com.example.vladyslav.model.enums.AppointmentStatus;
 import com.example.vladyslav.repository.DoctorRepository;
+import com.example.vladyslav.requests.BookAppointmentRequest;
 import com.example.vladyslav.requests.RescheduleRequest;
 import com.example.vladyslav.service.AppointmentService;
 import com.example.vladyslav.service.UserService;
@@ -58,8 +59,8 @@ public class AppointmentController {
     }
 
     @PostMapping
-    public ResponseEntity<AppointmentDTO> createAppointment(@RequestBody Appointment appointment) {
-            return new ResponseEntity<>(appointmentService.createAppointment(appointment), HttpStatus.CREATED);
+    public ResponseEntity<AppointmentDTO> createAppointment(@RequestBody BookAppointmentRequest request) {
+            return new ResponseEntity<>(appointmentService.createAppointment(request), HttpStatus.CREATED);
     }
 
     @PostMapping("/cancel/{appointmentId}")
