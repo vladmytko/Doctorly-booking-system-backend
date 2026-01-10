@@ -1,4 +1,6 @@
-# DoctorLy – Clinic & Doctor Booking System
+# DoctorLy – Doctor Booking System
+# Backend: https://github.com/vladmytko/Doctorly-booking-system-backend
+# Frontend: https://github.com/vladmytko/Doctorly-booking-system-frontend
 
 **DoctorLy** is a role-based backend API for managing **private clinics, doctors, and patients**.  
 It provides features for **booking appointments**, **doctor and clinic management**, and **secure user authentication** with **JWT tokens**.  
