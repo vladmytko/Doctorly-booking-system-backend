@@ -24,6 +24,6 @@ public class PatientDTO {
     private String userId;
     private Instant createdAt;
     private Instant updatedAt;
-    private String photoUrl;
+    private String imageUrl;
 
 }
