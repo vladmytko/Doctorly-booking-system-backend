@@ -62,7 +62,7 @@ public class PatientService {
                 .userId(patient.getUser().getId())
                 .createdAt(patient.getCreatedAt())
                 .updatedAt(patient.getUpdatedAt())
-                .photoUrl(patient.getImageUrl())
+                .imageUrl(patient.getImageUrl())
                 .role(patient.getUser().getRole())
                 .build();
     }

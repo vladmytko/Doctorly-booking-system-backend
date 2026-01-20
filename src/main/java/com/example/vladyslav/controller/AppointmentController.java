@@ -1,7 +1,6 @@
 package com.example.vladyslav.controller;
 
 import com.example.vladyslav.dto.AppointmentDTO;
-import com.example.vladyslav.model.Appointment;
 import com.example.vladyslav.model.User;
 import com.example.vladyslav.model.enums.AppointmentStatus;
 import com.example.vladyslav.repository.DoctorRepository;

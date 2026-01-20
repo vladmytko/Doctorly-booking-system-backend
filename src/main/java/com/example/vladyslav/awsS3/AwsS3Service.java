@@ -30,7 +30,7 @@ public class AwsS3Service {
     @Value("${aws.s3.access.key:}")
     private String accessKey;
 
-    @Value("${aws.s3.secret.key:}")
+    @Value("${aws.s3.secret.key:it clean}")
     private String secretKey;
 
     // Define allowed file extensions for security
