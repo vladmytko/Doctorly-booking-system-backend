@@ -59,6 +59,8 @@ public class Appointment {
     @Version
     private Long version;
 
+    private String concern;
+
 
 
 }

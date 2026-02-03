@@ -31,6 +31,7 @@ public class DoctorDTO {
     private Instant createdAt;
     private Instant updatedAt;
     private String imageUrl;
+    private String clinicId;
 
     @Builder.Default
     private int consultationFee = 0;

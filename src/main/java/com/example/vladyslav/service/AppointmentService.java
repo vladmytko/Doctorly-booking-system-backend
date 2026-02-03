@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 
 import java.time.*;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -45,6 +44,7 @@ public class AppointmentService {
                 .createdAt(a.getCreatedAt())
                 .updatedAt(a.getUpdatedAt())
                 .version(a.getVersion())
+                .concern(a.getConcern())
                 .build();
     }
 
@@ -84,6 +84,7 @@ public class AppointmentService {
                 .end(request.getNewEnd())
                 .status(appointment.getStatus())
                 .version(appointment.getVersion())
+                .concern(appointment.getConcern())
                 .build();
 
         validateDraft(appointmentCheck);
@@ -235,6 +236,7 @@ public class AppointmentService {
                         .start(start)
                         .end(end)
                         .status(AppointmentStatus.SCHEDULED)
+                        .concern(request.getConcern())
                         .build();
 
         validateDraft(draft);

@@ -24,5 +24,6 @@ public class AppointmentDTO {
     private Instant createdAt;
     private Instant updatedAt;
     private Long version;
+    private String concern;
 
 }

@@ -355,7 +355,6 @@ public class DoctorService {
                         .rating(r.getRating())
                         .patientId(r.getPatient().getId())
                         .doctorId(r.getDoctor().getId())
-                        //.clinicId(r.getClinic().getId())
                         .createdAt(r.getCreatedAt())
                         .build()
                 ).toList();
@@ -378,6 +377,7 @@ public class DoctorService {
                 .updatedAt(doctor.getUpdatedAt())
                 .consultationFee(doctor.getConsultationFee())
                 .languages(doctor.getLanguages())
+                .clinicId(doctor.getClinic().getId())
                 .build();
     }
 
